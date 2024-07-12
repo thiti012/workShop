@@ -72,7 +72,7 @@ function Product() {
 
     const fetchData = async () => {
         try{
-            const res = await axios.get(config.apiPath + '/product/list',config.headers())
+            const res = await axios.get(config.apiPath + '/product/list',config.headers());
 
             if(res.data.results !== undefined){
                 setProducts(res.data.results);
@@ -232,9 +232,9 @@ function Product() {
             </thead>
             <tbody>
                 {products.length > 0 ? products.map(item => 
-                    <tr key={item.id}>
-                        <td>{showImage(item)}</td>
-                        <td>{item.name}</td>
+                    <tr  key={item.id}>
+                        <td width='180px' >{showImage(item)}</td>
+                        <td className="" >{item.name}</td>
                         <td className="text-right">{item.cost}</td>
                         <td className="text-right">{item.price}</td>
                         <td className="text-center">
@@ -290,5 +290,5 @@ function Product() {
        
     </BackOffice>
 }
-
+//thiti
 export default Product;

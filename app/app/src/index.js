@@ -6,8 +6,8 @@ import{
   RouterProvider,
 } from "react-router-dom";
 
-import SignIn from './pages/backoffice/SignIn'
-import Home from './pages/backoffice/Home';
+import SignIn from  './pages/backoffice/SignIn';
+import Home from    './pages/backoffice/Home';
 import Product from './pages/backoffice/Product';
 
 const router = createBrowserRouter([
