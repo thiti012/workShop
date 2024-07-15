@@ -2,12 +2,20 @@ import { useState,useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from 'axios';
 import config from "../config";
-
+import MyModal from "../components/MyModal";
+import dayjs from 'dayjs';
 
 function Index(params) {
     const [products, setproducts] = useState([]);
     const [carts, setCarts] = useState([]);
     const [recordInCarts,setRecordInCarts] = useState(0)
+    const [sumQty, setSumQty] = useState(0);
+    const [sumPrice, setSumPrice] = useState(0);
+    const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [customerAdress,setCustomerAdress] = useState('');
+    const [payDate,setPayDate] = useState(dayjs(new Date()).format('YYYY-MM-DD'));
+    const [payTime,setPayTime] = useState('');
 
     useEffect (() => {
         fetchData();
@@ -42,12 +50,115 @@ function Index(params) {
         setRecordInCarts(arr.length);
 
         localStorage.setItem('carts',JSON.stringify(carts));
+
+        fetchDataFromLocal();
     }
 
     const fetchDataFromLocal =  () => {
         const itemInCarts = JSON.parse(localStorage.getItem('carts'))
-        setCarts(itemInCarts);
-        setRecordInCarts(itemInCarts !== null ? itemInCarts.length : 0)
+        
+        if(itemInCarts !== null ){
+            setCarts(itemInCarts);
+            setRecordInCarts(itemInCarts !== null ? itemInCarts.length : 0)
+        
+            computePriceAndQty(itemInCarts);
+        }
+    }
+
+    const computePriceAndQty = (itemInCarts) => {
+        let sumQty = 0;
+        let sumPrice = 0;
+
+        for(let i=0; i < itemInCarts.length; i++){
+            const item = itemInCarts[i];
+            sumQty++;
+            sumPrice += parseInt(item.price);
+        }
+        setSumPrice(sumPrice)
+        setSumQty(sumQty)
+    }
+
+    const handleRemove = async(item) => {
+        try{
+            const button =await Swal.fire({
+                title:'ลบสินค้า',
+                text: 'คุณต้องการลบสินค้าออกจากตระกร้าใช่หรือไม่',
+                icon:'question',
+                showCancelButton: true,
+                showConfirmButton: true,
+
+            })
+               if(button.isConfirmed){
+                let arr = carts;
+
+                for(let i = 0; i < arr.length; i++){
+                    const itemInCarts = arr[i];
+
+                    if(item.id === itemInCarts.id){
+                        arr.splice(i,1)
+
+                    }
+                }
+                Swal.fire({
+                    title: 'success',
+                    text: 'Delete success',
+                    icon: 'success',
+                    timer: 1000
+                })
+
+                setCarts(arr);
+                setRecordInCarts(arr.lenght);
+
+                localStorage.setItem('carts',JSON.stringify(arr));
+                
+                computePriceAndQty(arr);
+
+                fetchDataFromLocal();
+
+            }                   
+        }catch(e){
+            Swal.fire({
+                title: 'error',
+                text: e.message,
+                icon: 'error'
+            })
+        }
+    }
+
+    const handleSave = async () => {
+        try{
+            const payload = {
+                customerName: customerName,
+                customerPhone: customerPhone,
+                cusTomerAdress: customerAdress,
+                payDate: payDate,
+                payTime: payTime ,
+                carts: carts,
+
+            }
+
+            console.log(payload)
+            const res = await axios.post(config.apiPath + '/api/sale/save' , payload);
+
+            if( res.data.message === 'successs'){
+                localStorage.removeItem('carts');
+                setRecordInCarts(0);
+                setCarts([]);
+
+                Swal.fire({
+                    title: 'บันทึกข้อมูล',
+                    text: 'ระบบบันทึกข้อมูลของคุณแล้ว',
+                    icon: 'success'
+                })
+            }
+        }catch(e){
+            Swal.fire({
+                title: 'error',
+                text: e.message,
+                icon: 'error',
+                timer: 1000
+            })
+        }
     }
 
     function showImage(item) {
@@ -74,7 +185,10 @@ function Index(params) {
              </div>
             <div className="float-end">
                   ตะกร้าของฉัน
-                <button className="btn btn-outline-success ms-2 me-2">
+                <button
+                     data-bs-toggle='modal'
+                     data-bs-target='#modalCart'
+                     className="btn btn-outline-success ms-2 me-2">
                      <i className="fa fa-shopping-cart me-2"></i>
                      {recordInCarts}
                  </button>
@@ -106,8 +220,75 @@ function Index(params) {
                 </div>
 
         </div>
+
+        <MyModal id='modalCart' title='ตะกร้าสินค้าของฉัน'>
+            <table className="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>name</th>
+                        <th className="text-end">price</th>
+                        <th className="text-end">qty</th>
+                        <th width="60px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {carts.length > 0 ? carts.map(item => 
+                        <tr key={item.id}>
+                            <td>{item.name}</td>
+                            <td className="text-end">{item.price.toLocaleString('th-TH')}</td>
+                            <td className="text-end">1</td>
+                            <td className="text-center">
+                                <button className="btn btn-danger" onClick={e => handleRemove(item)}>
+                                    <i className="fa fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    ) : <></>}
+                </tbody>
+            </table>
+
+            <div className="text-center">
+                    จำนวน {sumQty} รายการ เป็นเงิน {sumPrice.toLocaleString('th-TH')}
+            </div>
+
+        <div className="mt-3">
+                    <div className="alert alert-info">
+                        <div> โปรโอนเงินไปยังบัญชี</div>
+                        <div>กสิกร ธิติวุฒิ  วงศ์ซื่อ พร้อมเพย์ 0927464736</div>
+                    </div>
+
+                <div>
+                    <div>ชื่อผู้ซื้อ</div>
+                    <input className="form-control" onChange={e => setCustomerName(e.target.value)}/>
+                </div>
+            <div className="mt-3">
+                    <div>เบอร์โทรติดต่อ</div>
+                    <input className="form-control" onChange={e => setCustomerPhone(e.target.value)}/>
+                 </div>
+            
+            <div className="mt-3">
+                <div>ที่อยู่จัดส่ง</div>
+                <input className="form-control" onChange={e => setCustomerAdress(e.target.value)}/>
+            </div>
+            <div className="mt-3">
+                <div>วันที่โอน</div>
+                <input className="form-control" type="date" value={payDate} onChange={e => setPayDate(e.target.value)}/>
+            </div>
+            <div className="mt-3">
+                <div>เวลาที่โอน</div>
+                <input className="form-control" onChange={e => setPayTime(e.target.value)}/>
+            </div>
+
+            <button className="btn btn-primary mt-3" onClick={handleSave}>
+                <i className="fa fa-check me-2"></i>ยืนยันการซื้อ
+            </button>
+        </div>
+        
+
+        </MyModal>
     
     </>
     
 }
 export default Index;
+
