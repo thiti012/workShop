@@ -13,7 +13,7 @@ function Index(params) {
     const [sumPrice, setSumPrice] = useState(0);
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
-    const [customerAdress,setCustomerAdress] = useState('');
+    const [customerAddress,setCustomerAddress] = useState('');
     const [payDate,setPayDate] = useState(dayjs(new Date()).format('YYYY-MM-DD'));
     const [payTime,setPayTime] = useState('');
 
@@ -130,17 +130,16 @@ function Index(params) {
             const payload = {
                 customerName: customerName,
                 customerPhone: customerPhone,
-                cusTomerAdress: customerAdress,
+                customerAddress: customerAddress,
                 payDate: payDate,
                 payTime: payTime ,
                 carts: carts,
 
             }
 
-            console.log(payload)
             const res = await axios.post(config.apiPath + '/api/sale/save' , payload);
 
-            if( res.data.message === 'successs'){
+            if( res.data.message === 'success'){
                 localStorage.removeItem('carts');
                 setRecordInCarts(0);
                 setCarts([]);
@@ -150,6 +149,14 @@ function Index(params) {
                     text: 'ระบบบันทึกข้อมูลของคุณแล้ว',
                     icon: 'success'
                 })
+
+                document.getElementById('modalCart_btnClose').click();
+                setCustomerName('');
+                setCustomerPhone('');
+                setCustomerAddress('');
+                setPayDate(new Date());
+                setPayTime('');
+
             }
         }catch(e){
             Swal.fire({
@@ -268,7 +275,7 @@ function Index(params) {
             
             <div className="mt-3">
                 <div>ที่อยู่จัดส่ง</div>
-                <input className="form-control" onChange={e => setCustomerAdress(e.target.value)}/>
+                <input className="form-control" onChange={e => setCustomerAddress(e.target.value)}/>
             </div>
             <div className="mt-3">
                 <div>วันที่โอน</div>
