@@ -127,6 +127,9 @@ app.post('/uploadFromExcel', (req,res) => {
     try{
         const fileExcel = req.files.fileExcel;
 
+        if(fileExcel != undefined){
+            if(fileExcel != null ){
+         
         fileExcel.mv('./uploads/' + fileExcel.name, async (err) => {
             if(err) throw err;
             //read from file and insert to database
@@ -161,6 +164,14 @@ app.post('/uploadFromExcel', (req,res) => {
 
                 res.send({ message: 'success'})
         })
+               
+            } else {
+                res.status(500).send({ message: 'fileExcel is null'})
+            }
+
+        } else{
+            res.status(500).send ({ message: 'fileExcel is undefides'})
+        }
     }catch(e){
         res.status(500).send({ error: e.message})
     }
