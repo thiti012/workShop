@@ -54,4 +54,118 @@ app.get('/list',async (req,res) => {
     }
 })
 
+app.get('/billInfo/:billSaleId', async(req,res ) => {
+    try{
+        const results = await prisma.billSaleDetail.findMany({
+            
+            include:{
+                Product: true
+            },
+            where: {
+                billSaleId: parseInt(req.params.billSaleId)
+            },
+            orderBy: {
+                id: 'desc'
+            }
+        });
+        res.send({ results: results})
+    }catch(e){
+        res.status(500).send({ error: e.message})
+    }
+})
+
+app.get('/updateStatusToPay/:bilSaleId',async (req,res ) => {
+    try{
+        await prisma.billSale.update({
+            data: {
+                status: 'pay'
+            },
+            where: {
+                id: parseInt(req.params.bilSaleId)
+            }
+
+        })
+        res.send({message: 'success'})
+    }catch(e){
+        res.status(500).send({ error: e.message})
+    }
+})
+
+app.get('/updateStatusToSend/:bilSaleId',async (req,res ) => {
+    try{
+        await prisma.billSale.update({
+            data: {
+                status: 'send'
+            },
+            where: {
+                id: parseInt(req.params.bilSaleId)
+            }
+
+        })
+        res.send({message: 'success'})
+    }catch(e){
+        res.status(500).send({ error: e.message})
+    }
+})
+
+app.get('/updateStatusToCancel/:bilSaleId',async (req,res ) => {
+    try{
+        await prisma.billSale.update({
+            data: {
+                status: 'cancel'
+            },
+            where: {
+                id: parseInt(req.params.bilSaleId)
+            }
+
+        })
+        res.send({message: 'success'})
+    }catch(e){
+        res.status(500).send({ error: e.message})
+    }
+})
+
+app.get('/dashboard' , async (req,res) => {
+    try{
+        let arr = [];
+        let myDate = new Date();
+        let year = myDate.getFullYear();
+
+        for(let i = 1; i <= 12; i++){
+            const daysInMonth = new Date(year, i, 0).getDate();
+                const billSaleInMonth = await prisma.billSale.findMany({
+                    where: {
+                        payDate: {
+                        gte: new Date(year + '-' + i + '-01'),
+                        lte: new Date(year + '-' + i + '-'+ daysInMonth)
+                    } 
+                }
+            })
+
+            let sumPrice = 0;
+
+            for(let j = 0; j< billSaleInMonth.length; j++){
+                const billSaleObject = billSaleInMonth[j];
+                const sum = await prisma.billSaleDetail.aggregate({
+                    _sum: {
+                        price: true
+                    },
+                    where: {
+                        billSaleId: billSaleObject.id
+                    }
+                })
+
+                sumPrice = sum._sum.price ?? 0
+
+            }
+
+            arr.push({ month: i,sumPrice: sumPrice ?? 0 })
+
+            }
+            res.send({ results: arr})
+        } catch(e){
+            res.status(500).send({ error: message})
+        }
+})
+
 module.exports = app;
