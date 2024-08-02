@@ -5,8 +5,7 @@ function MyModal(props) {
             <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">{props.title}</h5>
-                <button id={props.id+'_btnClose'} type="button" class="btn-close" data-dismiss="modal" aria-label="close">
-                    <i className="fa fa-times"></i>
+                <button id={props.id+'_btnClose'} className="btn-close" type="button" data-dismiss="modal" aria-label="close">
                 </button>
             </div>
             <div class="modal-body">

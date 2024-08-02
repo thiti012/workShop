@@ -25,7 +25,7 @@ function SignIn() {
 
             if (res.data.token !== undefined) {
                 localStorage.setItem('token', res.data.token);
-                navigate('/home');
+                navigate('/product');
             } else {
                 Swal.fire({
                     title: 'Error!',
